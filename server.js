@@ -33,5 +33,42 @@ app.get("/api/reservations", async (req, res, next) => {
     next(error);
   }
 });
+app.post("/api/customers/:id/reservations", async (req, res, next) => {
+  try {
+    const customerId = +req.params.id;
+    const restaurantId = customerId;
+    const { date, partyCount } = req.body;
+    console.log("customer id: ", customerId);
+    console.log("date ", date);
+    console.log("party count: ", partyCount);
+    const reservation = await prisma.reservation.create({
+      data: {
+        date,
+        partyCount,
+        customerId,
+        restaurantId,
+      },
+    });
+    res.status(201).json(reservation);
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.delete("/api/customers/reservations/:id", async (req, res, next) => {
+  try {
+    const id = +req.params.id;
+    const deleteReservation = await prisma.reservation.findFirst({
+      where: { id },
+    });
+    if (deleteReservation) {
+      await prisma.reservation.delete({ where: { id } });
+      return res.json(deleteReservation);
+    }
+  } catch (error) {
+    console.log("Error while deleting a reservation ", error);
+    next(error);
+  }
+});
 
 app.listen(PORT, () => console.log(`Listening to port ${PORT}`));
